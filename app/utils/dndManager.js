@@ -21,9 +21,17 @@ class DndManager extends EventEmitter {
       this.util = require('node:util')
     }
 
+    this.timeOfNextRegularBreak = null
+    this.oldBreakNumber = null
     if (this.monitorDnd) {
       this.start()
     }
+  }
+
+   reset() {
+    this.timeOfNextRegularBreak = null
+    this.oldBreakNumber = null
+    log.info('Meetings#: reset')
   }
 
   start () {
