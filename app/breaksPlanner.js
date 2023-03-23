@@ -46,6 +46,20 @@ class BreaksPlanner extends EventEmitter {
 
     this.dndManager.on('dndStarted', () => {
       if (!this.isPaused && this.scheduler.reference !== 'finishMicrobreak' && this.scheduler.reference !== 'finishBreak' && this.scheduler.reference !== null) {
+        const breakInterval = this.settings.get('breakInterval')
+        const breakNotificationInterval = this.settings.get('breakNotificationInterval')
+        const microbreakNotificationInterval = this.settings.get('microbreakNotificationInterval')
+
+        if (!this.dndManager.timeOfNextRegularBreak) {
+          this.dndManager.timeOfNextRegularBreak = Date.now()
+              + this.scheduler.timeLeft
+              + (this.breakNumber % breakInterval === 0 ? breakNotificationInterval : microbreakNotificationInterval)
+          if (this.breakNumber) {
+            this.dndManager.oldBreakNumber = this.breakNumber % breakInterval || breakInterval
+          } else {
+            this.dndManager.oldBreakNumber = 0
+          }
+        }
         this.clear()
         log.info('Stretchly: pausing breaks for Do Not Distrub')
         this.emit('updateToolTip')
@@ -56,7 +70,21 @@ class BreaksPlanner extends EventEmitter {
 
     this.dndManager.on('dndFinished', () => {
       if (!this.isPaused && this.scheduler.reference !== 'finishMicrobreak' && this.scheduler.reference !== 'finishBreak') {
-        this.reset()
+        const setting_interval = this.settings.get('microbreakInterval')
+        const breakInterval = this.settings.get('breakInterval')
+
+        let interval = this.dndManager.timeOfNextRegularBreak - Date.now()
+        const missedBreaks = Math.max(0, Math.trunc(Math.abs(interval) / setting_interval))
+        this.breakNumber = Math.min(this.dndManager.oldBreakNumber + missedBreaks, breakInterval)
+
+        interval = Math.max(interval, 30 * 1000) // continue interval or start break in 30 seconds if necessary
+
+        this.settings.set('microbreakInterval', interval)
+        this.resume()
+        this.settings.set('microbreakInterval', setting_interval)
+        this.dndManager.reset()
+        this.breakNumber = this.breakNumber - 1
+
         log.info('Stretchly: resuming breaks for Do Not Distrub')
         this.emit('updateToolTip')
       }
