@@ -54,11 +54,7 @@ class BreaksPlanner extends EventEmitter {
           this.dndManager.timeOfNextRegularBreak = Date.now()
               + this.scheduler.timeLeft
               + (this.breakNumber % breakInterval === 0 ? breakNotificationInterval : microbreakNotificationInterval)
-          if (this.breakNumber) {
-            this.dndManager.oldBreakNumber = this.breakNumber % breakInterval || breakInterval
-          } else {
-            this.dndManager.oldBreakNumber = 0
-          }
+          this.dndManager.oldBreakNumber = this.breakNumber - 1
         }
         this.clear()
         log.info('Stretchly: pausing breaks for Do Not Distrub')
@@ -74,8 +70,10 @@ class BreaksPlanner extends EventEmitter {
         const breakInterval = this.settings.get('breakInterval')
 
         let interval = this.dndManager.timeOfNextRegularBreak - Date.now()
-        const missedBreaks = Math.max(0, Math.trunc(Math.abs(interval) / setting_interval))
-        this.breakNumber = Math.min(this.dndManager.oldBreakNumber + missedBreaks, breakInterval)
+        const missedMicrobreakIntervals = Math.max(0, Math.trunc(Math.abs(interval) / setting_interval))
+        log.info('Meetings!: interval: ' + interval + ' | oldBreakNumber: ' + this.dndManager.oldBreakNumber + ' | missedMicrobreakIntervals: ' + missedMicrobreakIntervals + ' | breakNumber: ' + this.breakNumber)
+
+        this.breakNumber = Math.min(this.dndManager.oldBreakNumber + missedMicrobreakIntervals, breakInterval)
 
         interval = Math.max(interval, 30 * 1000) // continue interval or start break in 30 seconds if necessary
 
@@ -83,7 +81,6 @@ class BreaksPlanner extends EventEmitter {
         this.resume()
         this.settings.set('microbreakInterval', setting_interval)
         this.dndManager.reset()
-        this.breakNumber = this.breakNumber - 1
 
         log.info('Stretchly: resuming breaks for Do Not Distrub')
         this.emit('updateToolTip')
