@@ -54,7 +54,7 @@ class BreaksPlanner extends EventEmitter {
           this.dndManager.timeOfNextRegularBreak = Date.now()
               + this.scheduler.timeLeft
               + (this.breakNumber % breakInterval === 0 ? breakNotificationInterval : microbreakNotificationInterval)
-          this.dndManager.oldBreakNumber = this.breakNumber - 1
+          this.dndManager.oldBreakNumber = this.breakNumber
         }
         this.clear()
         log.info('Stretchly: pausing breaks for Do Not Distrub')
@@ -80,6 +80,10 @@ class BreaksPlanner extends EventEmitter {
         this.settings.set('microbreakInterval', interval)
         this.resume()
         this.settings.set('microbreakInterval', setting_interval)
+
+        if (0 === missedMicrobreakIntervals) {
+          this.breakNumber -= 1
+        }
         this.dndManager.reset()
 
         log.info('Stretchly: resuming breaks for Do Not Distrub')
