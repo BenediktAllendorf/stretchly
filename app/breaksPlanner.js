@@ -75,15 +75,16 @@ class BreaksPlanner extends EventEmitter {
 
         this.breakNumber = Math.min(this.dndManager.oldBreakNumber + missedMicrobreakIntervals, breakInterval)
 
+        if (this.breakNumber > 0 && 0 === missedMicrobreakIntervals) {
+          this.breakNumber -= 1
+        }
+
         interval = Math.max(interval, 30 * 1000) // continue interval or start break in 30 seconds if necessary
 
         this.settings.set('microbreakInterval', interval)
         this.resume()
         this.settings.set('microbreakInterval', setting_interval)
 
-        if (0 === missedMicrobreakIntervals) {
-          this.breakNumber -= 1
-        }
         this.dndManager.reset()
 
         log.info('Stretchly: resuming breaks for Do Not Distrub')
