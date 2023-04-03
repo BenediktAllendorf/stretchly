@@ -73,11 +73,12 @@ class BreaksPlanner extends EventEmitter {
         const missedMicrobreakIntervals = Math.max(0, Math.trunc(Math.abs(interval) / setting_interval))
         log.info('Meetings!: interval: ' + interval + ' | oldBreakNumber: ' + this.dndManager.oldBreakNumber + ' | missedMicrobreakIntervals: ' + missedMicrobreakIntervals + ' | breakNumber: ' + this.breakNumber)
 
-        this.breakNumber = Math.min(this.dndManager.oldBreakNumber + missedMicrobreakIntervals, breakInterval)
-
-        if (this.breakNumber > 0 && 0 === missedMicrobreakIntervals) {
-          this.breakNumber -= 1
+        if (0 === missedMicrobreakIntervals) {
+          this.dndManager.oldBreakNumber -=1
+          this.dndManager.oldBreakNumber = Math.max(0, this.dndManager.oldBreakNumber)
         }
+
+        this.breakNumber = Math.min(this.dndManager.oldBreakNumber + missedMicrobreakIntervals, breakInterval)
 
         interval = Math.max(interval, 30 * 1000) // continue interval or start break in 30 seconds if necessary
 
