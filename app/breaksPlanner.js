@@ -53,7 +53,7 @@ class BreaksPlanner extends EventEmitter {
         if (!this.dndManager.timeOfNextRegularBreak) {
           this.dndManager.timeOfNextRegularBreak = Date.now()
               + this.scheduler.timeLeft
-              + (this.breakNumber % breakInterval === 0 ? breakNotificationInterval : microbreakNotificationInterval)
+              + (this.breakNumber % (breakInterval + 1) === 0 ? breakNotificationInterval : microbreakNotificationInterval)
           this.dndManager.oldBreakNumber = this.breakNumber
         }
         this.clear()
@@ -71,14 +71,17 @@ class BreaksPlanner extends EventEmitter {
 
         let interval = this.dndManager.timeOfNextRegularBreak - Date.now()
         const missedMicrobreakIntervals = Math.max(0, Math.trunc(Math.abs(interval) / setting_interval))
-        log.info('Meetings!: interval: ' + interval + ' | oldBreakNumber: ' + this.dndManager.oldBreakNumber + ' | missedMicrobreakIntervals: ' + missedMicrobreakIntervals + ' | breakNumber: ' + this.breakNumber)
+        log.info('Meetings!: interval: ' + interval + ' | oldBreakNumber: ' + this.dndManager.oldBreakNumber + ' | missedMicrobreakIntervals: ' + missedMicrobreakIntervals)
 
+        // because this.resume() will add +1 to breakNumber, we must deduct that in case no pause was missed
         if (0 === missedMicrobreakIntervals) {
           this.dndManager.oldBreakNumber -=1
           this.dndManager.oldBreakNumber = Math.max(0, this.dndManager.oldBreakNumber)
         }
 
-        this.breakNumber = Math.min(this.dndManager.oldBreakNumber + missedMicrobreakIntervals, breakInterval)
+        const breakNumberToBeAdded = Math.min(missedMicrobreakIntervals, breakInterval - (this.dndManager.oldBreakNumber % breakInterval))
+        this.breakNumber = this.dndManager.oldBreakNumber + breakNumberToBeAdded
+        log.info('Meetings!: breakNumberToBeAdded: ' + breakNumberToBeAdded + ' | breakNumber: ' + this.breakNumber)
 
         interval = Math.max(interval, 30 * 1000) // continue interval or start break in 30 seconds if necessary
 
