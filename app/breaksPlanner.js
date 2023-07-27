@@ -73,10 +73,10 @@ class BreaksPlanner extends EventEmitter {
         const missedMicrobreakIntervals = Math.max(0, Math.trunc(Math.abs(interval) / setting_interval))
         log.info('Meetings!: interval: ' + interval + ' | oldBreakNumber: ' + this.dndManager.oldBreakNumber + ' | missedMicrobreakIntervals: ' + missedMicrobreakIntervals)
 
-        // because this.resume() will add +1 to breakNumber, we must deduct that in case no pause was missed
-        if (0 === missedMicrobreakIntervals) {
-          this.dndManager.oldBreakNumber -=1
-          this.dndManager.oldBreakNumber = Math.max(0, this.dndManager.oldBreakNumber)
+        if (0 === missedMicrobreakIntervals) { // no pause was missed, just re-schedule the last one
+          this.dndManager.oldBreakNumber -= 1
+        } else if (this.dndManager.oldBreakNumber - 1 % breakInterval === 0) { // last scheduled (and missed) pause was a long break, so go back to that
+          this.dndManager.oldBreakNumber -= 1
         }
 
         const breakNumberToBeAdded = Math.min(missedMicrobreakIntervals, breakInterval - (this.dndManager.oldBreakNumber % breakInterval))
