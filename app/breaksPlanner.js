@@ -79,7 +79,7 @@ class BreaksPlanner extends EventEmitter {
           this.dndManager.oldBreakNumber -= 1
         }
 
-        const breakNumberToBeAdded = Math.min(missedMicrobreakIntervals, breakInterval - (this.dndManager.oldBreakNumber % breakInterval))
+        const breakNumberToBeAdded = Math.min(missedMicrobreakIntervals, (breakInterval - (this.dndManager.oldBreakNumber % breakInterval)) % breakInterval)
         this.breakNumber = this.dndManager.oldBreakNumber + breakNumberToBeAdded
         log.info('Meetings!: breakNumberToBeAdded: ' + breakNumberToBeAdded + ' | breakNumber: ' + this.breakNumber)
 
