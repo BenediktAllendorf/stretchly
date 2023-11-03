@@ -54,7 +54,12 @@ class BreaksPlanner extends EventEmitter {
           this.dndManager.timeOfNextRegularBreak = Date.now()
               + this.scheduler.timeLeft
               + (this.breakNumber % (breakInterval + 1) === 0 ? breakNotificationInterval : microbreakNotificationInterval)
-          this.dndManager.oldBreakNumber = this.breakNumber
+
+          this.dndManager.oldBreakNumber = 0
+
+          if (this.breakNumber !== 0) {
+            this.dndManager.oldBreakNumber = this.breakNumber % (breakInterval +  1) || 4
+          }
         }
         this.clear()
         log.info('Stretchly: pausing breaks for Do Not Distrub')
@@ -73,13 +78,16 @@ class BreaksPlanner extends EventEmitter {
         const missedMicrobreakIntervals = Math.max(0, Math.trunc(Math.abs(interval) / setting_interval))
         log.info('Meetings!: interval: ' + interval + ' | oldBreakNumber: ' + this.dndManager.oldBreakNumber + ' | missedMicrobreakIntervals: ' + missedMicrobreakIntervals)
 
-        if (0 === missedMicrobreakIntervals) { // no pause was missed, just re-schedule the last one
-          this.dndManager.oldBreakNumber -= 1
-        } else if (this.dndManager.oldBreakNumber - 1 % breakInterval === 0) { // last scheduled (and missed) pause was a long break, so go back to that
-          this.dndManager.oldBreakNumber -= 1
+        let breakNumberToBeAdded = 0
+        if (
+            0 === missedMicrobreakIntervals || // no pause was missed, just re-schedule the last one
+            this.dndManager.oldBreakNumber === (breakInterval + 1) // last scheduled (and missed) pause was a long break, so go back to that
+        ) {
+          breakNumberToBeAdded -= 1
+        } else {
+          breakNumberToBeAdded = Math.min(missedMicrobreakIntervals, (breakInterval - this.dndManager.oldBreakNumber))
         }
 
-        const breakNumberToBeAdded = Math.min(missedMicrobreakIntervals, (breakInterval - (this.dndManager.oldBreakNumber % breakInterval)) % breakInterval)
         this.breakNumber = this.dndManager.oldBreakNumber + breakNumberToBeAdded
         log.info('Meetings!: breakNumberToBeAdded: ' + breakNumberToBeAdded + ' | breakNumber: ' + this.breakNumber)
 
