@@ -691,6 +691,9 @@ function startMicrobreak () {
     return
   }
 
+  breakPlanner.emit('microbreakStarted', true)
+  log.info('Stretchly: starting Mini Break')
+
   const breakDuration = settings.get('microbreakDuration')
   const strictMode = settings.get('microbreakStrictMode')
   const postponesLimit = settings.get('microbreakPostponesLimit')
@@ -789,10 +792,6 @@ function startMicrobreak () {
           microbreakWinLocal.setKiosk(settings.get('fullscreen'))
         }
       }
-      if (localDisplayId === 0) {
-        breakPlanner.emit('microbreakStarted', true)
-        log.info('Stretchly: starting Mini Break')
-      }
       if (!settings.get('fullscreen') && process.platform !== 'darwin') {
         setTimeout(() => {
           microbreakWinLocal.center()
@@ -838,6 +837,9 @@ function startBreak () {
     log.warn('Stretchly: Long Break already running, not starting Long Break')
     return
   }
+
+  breakPlanner.emit('breakStarted', true)
+  log.info('Stretchly: starting Long Break')
 
   const breakDuration = settings.get('breakDuration')
   const strictMode = settings.get('breakStrictMode')
@@ -936,10 +938,6 @@ function startBreak () {
         } else {
           breakWinLocal.setKiosk(settings.get('fullscreen'))
         }
-      }
-      if (localDisplayId === 0) {
-        breakPlanner.emit('breakStarted', true)
-        log.info('Stretchly: starting Long Break')
       }
 
       if (!settings.get('fullscreen') && process.platform !== 'darwin') {
